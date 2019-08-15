@@ -12,18 +12,22 @@ public class jogo extends ApplicationAdapter {
 
 	private int movimentoX = 0;
 	private SpriteBatch batch;
-	private Texture passaro;
+	private Texture[] passaros;
 	private Texture fundo;
 
 	//Atributos de configurações
 	private float alturaDispositivo;
 	private float larguraDispositivo;
+	private float variacao;
 	
 	@Override
 	public void create () {
 		//Gdx.app.log("create","jogo iniciado");
 		batch = new SpriteBatch();
-		passaro = new Texture("passaro1.png");
+		passaros = new Texture[3];
+		passaros[0] = new Texture("passaro1.png");
+		passaros[1] = new Texture("passaro2.png");
+		passaros[2] = new Texture("passaro3.png");
 		fundo = new Texture("fundo.png");
 
 		larguraDispositivo = Gdx.graphics.getWidth();
@@ -34,9 +38,14 @@ public class jogo extends ApplicationAdapter {
 	@Override
 	public void render () {
 
+		if (variacao>=3)
+			variacao=0;
+
 		batch.begin();
 		batch.draw(fundo,0,0,larguraDispositivo,alturaDispositivo);
-		batch.draw(passaro,movimentoX,200);
+		batch.draw(passaros[(int)variacao],movimentoX,200);
+
+		variacao += Gdx.graphics.getDeltaTime()*100;
 		movimentoX++;
 		batch.end();
 
