@@ -7,6 +7,12 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Circle;
+import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Rectangle;
+
+import org.omg.PortableInterceptor.Interceptor;
 
 import java.util.Random;
 
@@ -20,6 +26,12 @@ public class jogo extends ApplicationAdapter {
 	private Texture fundo;
 	private Texture canoTopo;
 	private Texture canoBaixo;
+
+	//Formas para colisao
+	private ShapeRenderer shapeRenderer;
+	private Circle circuloPassaro;
+	private Rectangle retanguloCanoTopo;
+	private Rectangle retanguloCanoBaixo;
 
 	//Atributos de configurações
 	private float alturaDispositivo;
@@ -49,6 +61,7 @@ public class jogo extends ApplicationAdapter {
 		desenharTexturas();
 		validarPontos();
 		verificarEstadoJogo();
+		detectarColisoes();
 	}
 
 	private void desenharTexturas(){
@@ -61,6 +74,31 @@ public class jogo extends ApplicationAdapter {
 		batch.draw(canoTopo,posicaoHorizontalCano,alturaDispositivo/2 + espacoEntreCanos + posicaoVerticalCano);
         textoPontuacao.draw(batch,String.valueOf(pontos),larguraDispositivo/2,alturaDispositivo-110);
 		batch.end();
+	}
+
+	private void detectarColisoes(){
+
+		circuloPassaro.set(50+passaros[0].getWidth()/2,posicaoInicialVerticalPassaro+passaros[0].getHeight()/2,passaros[0].getWidth()/2);
+		retanguloCanoTopo.set(posicaoHorizontalCano,alturaDispositivo/2 + espacoEntreCanos + posicaoVerticalCano,canoTopo.getWidth(),canoTopo.getHeight());
+		retanguloCanoBaixo.set(posicaoHorizontalCano,alturaDispositivo/2 - canoBaixo.getHeight() - espacoEntreCanos + posicaoVerticalCano,canoBaixo.getWidth(),canoBaixo.getHeight());
+
+		Boolean colidiuCanoTopo = Intersector.overlaps(circuloPassaro,retanguloCanoTopo);
+		Boolean colidiuCanoBaixo = Intersector.overlaps(circuloPassaro,retanguloCanoBaixo);
+
+		if (colidiuCanoTopo || colidiuCanoBaixo){
+
+		}
+		
+		/*
+		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+		shapeRenderer.setColor(Color.RED);
+		shapeRenderer.circle(50+passaros[0].getWidth()/2,posicaoInicialVerticalPassaro+passaros[0].getHeight()/2,passaros[0].getWidth()/2);
+		//Topo
+		shapeRenderer.rect(posicaoHorizontalCano,alturaDispositivo/2 + espacoEntreCanos + posicaoVerticalCano,canoTopo.getWidth(),canoTopo.getHeight());
+		//Baixo
+		shapeRenderer.rect(posicaoHorizontalCano,alturaDispositivo/2 - canoBaixo.getHeight() - espacoEntreCanos + posicaoVerticalCano,canoBaixo.getWidth(),canoBaixo.getHeight());
+		shapeRenderer.end();
+		*/
 	}
 
 	private void validarPontos(){
@@ -123,6 +161,12 @@ public class jogo extends ApplicationAdapter {
         textoPontuacao = new BitmapFont();
         textoPontuacao.setColor(Color.WHITE);
         textoPontuacao.getData().setScale(10);
+
+        //Formas geométricas para colisões
+		shapeRenderer = new ShapeRenderer();
+		circuloPassaro = new Circle();
+		retanguloCanoBaixo = new Rectangle();
+		retanguloCanoTopo = new Rectangle();
 	}
 	
 	@Override
