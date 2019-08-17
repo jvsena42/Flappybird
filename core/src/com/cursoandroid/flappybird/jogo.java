@@ -5,6 +5,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -12,6 +14,8 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 import java.util.Random;
 
@@ -59,6 +63,12 @@ public class jogo extends ApplicationAdapter {
 
 	//Objeto para salvar pontuacao
 	Preferences preferencias;
+
+	//Objetos para câmera
+	private OrthographicCamera camera;
+	private Viewport viewport;
+	private final float VIRTUAL_WIDTH = 720;
+	private final float VIRTUAL_HEIGTH = 1280;
 	
 	@Override
 	public void create () {
@@ -69,13 +79,19 @@ public class jogo extends ApplicationAdapter {
 
 	@Override
 	public void render () {
-		desenharObjetos();
-		validarPontos();
+
+		//Limpar frames anteriores
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+
 		verificarEstadoJogo();
+		validarPontos();
+		desenharObjetos();
 		detectarColisoes();
 	}
 
 	private void desenharObjetos(){
+
+		batch.setProjectionMatrix(camera.combined);
 
 		batch.begin();
 
@@ -133,7 +149,7 @@ public class jogo extends ApplicationAdapter {
 		}
 
 		//Bater de asas do pássaro
-		variacao += Gdx.graphics.getDeltaTime()*100;
+		variacao += Gdx.graphics.getDeltaTime()*10;
 		if (variacao>=3)
 			variacao=0;
 	}
@@ -222,8 +238,8 @@ public class jogo extends ApplicationAdapter {
 	private void inicializarObjetos (){
 		batch = new SpriteBatch();
 		random = new Random();
-		larguraDispositivo = Gdx.graphics.getWidth();
-		alturaDispositivo = Gdx.graphics.getHeight();
+		larguraDispositivo = VIRTUAL_WIDTH;
+		alturaDispositivo =VIRTUAL_HEIGTH;
 		posicaoInicialVerticalPassaro = alturaDispositivo/2;
 		posicaoHorizontalCano = larguraDispositivo;
 
@@ -255,8 +271,18 @@ public class jogo extends ApplicationAdapter {
 		//Configurar as preferencias do objeto
 		preferencias = Gdx.app.getPreferences("fappyBird");
 		pontuacaoMaxima = preferencias.getInteger("pontuacaoMaxima",0);
+
+		//Configuração da câmera
+		camera = new OrthographicCamera();
+		camera.position.set(VIRTUAL_WIDTH/2,VIRTUAL_HEIGTH/2,0);
+		viewport = new StretchViewport(VIRTUAL_WIDTH,VIRTUAL_HEIGTH,camera);
 	}
-	
+
+	@Override
+	public void resize(int width, int height) {
+		viewport.update(width,height);
+	}
+
 	@Override
 	public void dispose () {
 
