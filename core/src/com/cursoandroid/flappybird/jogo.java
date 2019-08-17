@@ -3,7 +3,6 @@ package com.cursoandroid.flappybird;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -12,11 +11,7 @@ import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
 
-import org.omg.PortableInterceptor.Interceptor;
-
 import java.util.Random;
-
-import static com.badlogic.gdx.Input.Keys.G;
 
 public class jogo extends ApplicationAdapter {
 
@@ -26,6 +21,7 @@ public class jogo extends ApplicationAdapter {
 	private Texture fundo;
 	private Texture canoTopo;
 	private Texture canoBaixo;
+	private Texture gameOver;
 
 	//Formas para colisao
 	private ShapeRenderer shapeRenderer;
@@ -45,9 +41,12 @@ public class jogo extends ApplicationAdapter {
 	private Random random;
 	private int pontos = 0;
 	private boolean passouCano = false;
+	private int estadoJogo = 0;
 
 	//Exibicao de texto
     BitmapFont textoPontuacao;
+    BitmapFont textoReiniciar;
+    BitmapFont textoMelhorPontuacao;
 	
 	@Override
 	public void create () {
@@ -58,13 +57,13 @@ public class jogo extends ApplicationAdapter {
 
 	@Override
 	public void render () {
-		desenharTexturas();
+		desenharObjetos();
 		validarPontos();
 		verificarEstadoJogo();
 		detectarColisoes();
 	}
 
-	private void desenharTexturas(){
+	private void desenharObjetos(){
 
 		batch.begin();
 
@@ -73,6 +72,13 @@ public class jogo extends ApplicationAdapter {
 		batch.draw(canoBaixo,posicaoHorizontalCano,alturaDispositivo/2 - canoBaixo.getHeight() - espacoEntreCanos + posicaoVerticalCano);
 		batch.draw(canoTopo,posicaoHorizontalCano,alturaDispositivo/2 + espacoEntreCanos + posicaoVerticalCano);
         textoPontuacao.draw(batch,String.valueOf(pontos),larguraDispositivo/2,alturaDispositivo-110);
+
+        if (estadoJogo == 2){
+        	batch.draw(gameOver,larguraDispositivo/2 - gameOver.getWidth()/2, alturaDispositivo/2);
+        	textoReiniciar.draw(batch,"Toque na tela para reiniciar",larguraDispositivo/2 - 200,alturaDispositivo/2 - gameOver.getHeight()/2 );
+        	textoMelhorPontuacao.draw(batch,"Melhor pontuação: 0",larguraDispositivo/2 - 140,alturaDispositivo/2-100);
+		}
+
 		batch.end();
 	}
 
@@ -86,9 +92,9 @@ public class jogo extends ApplicationAdapter {
 		Boolean colidiuCanoBaixo = Intersector.overlaps(circuloPassaro,retanguloCanoBaixo);
 
 		if (colidiuCanoTopo || colidiuCanoBaixo){
-
+			estadoJogo = 2;
 		}
-		
+
 		/*
 		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 		shapeRenderer.setColor(Color.RED);
@@ -108,34 +114,61 @@ public class jogo extends ApplicationAdapter {
 				passouCano = true;
 			}
 		}
-	}
-
-	private void verificarEstadoJogo (){
-
-		//Movimentar o cano
-		posicaoHorizontalCano -= Gdx.graphics.getDeltaTime() * 300;
-		if (posicaoHorizontalCano < -canoBaixo.getWidth()){
-			posicaoHorizontalCano = larguraDispositivo;
-			posicaoVerticalCano = random.nextInt(800) -400;
-			passouCano=false;
-		}
-
-		//Evento de clique
-		Boolean toqueTela = Gdx.input.justTouched();
-		if (toqueTela){
-			gravidade = -23;
-		}
-
-		//Efeito de queda no pássaro
-		if (posicaoInicialVerticalPassaro>0 || toqueTela)
-			posicaoInicialVerticalPassaro = posicaoInicialVerticalPassaro - gravidade;
 
 		//Bater de asas do pássaro
 		variacao += Gdx.graphics.getDeltaTime()*100;
 		if (variacao>=3)
 			variacao=0;
+	}
 
-		gravidade++;
+	private void verificarEstadoJogo (){
+
+		/*
+		0 - Estado inicial, pássaro parado
+		1 - Começa o jogo
+		2 - Colidiu
+		 */
+
+		Boolean toqueTela = Gdx.input.justTouched();
+
+		switch(estadoJogo){
+
+			case 0:
+				//Evento de clique
+				if (toqueTela){
+					gravidade = -17;
+					estadoJogo = 1;
+				}
+			break;
+
+			case 1:
+				//Evento de clique
+				if (toqueTela){
+					gravidade = -17;
+					estadoJogo = 1;
+				}
+
+				//Movimentar o cano
+				posicaoHorizontalCano -= Gdx.graphics.getDeltaTime() * 300;
+				if (posicaoHorizontalCano < -canoBaixo.getWidth()){
+					posicaoHorizontalCano = larguraDispositivo;
+					posicaoVerticalCano = random.nextInt(800) -400;
+					passouCano=false;
+				}
+
+				//Efeito de queda no pássaro
+				if (posicaoInicialVerticalPassaro>0 || toqueTela)
+					posicaoInicialVerticalPassaro = posicaoInicialVerticalPassaro - gravidade;
+
+				gravidade++;
+			break;
+
+			case 2:
+
+			break;
+		}
+
+
 	}
 
 	private void inicializarTexturas (){
@@ -147,6 +180,7 @@ public class jogo extends ApplicationAdapter {
 		fundo = new Texture("fundo.png");
 		canoTopo = new Texture("cano_topo_maior.png");
 		canoBaixo = new Texture("cano_baixo_maior.png");
+		gameOver = new Texture("game_over.png");
 	}
 
 	private void inicializarObjetos (){
@@ -161,6 +195,15 @@ public class jogo extends ApplicationAdapter {
         textoPontuacao = new BitmapFont();
         textoPontuacao.setColor(Color.WHITE);
         textoPontuacao.getData().setScale(10);
+
+        textoReiniciar = new BitmapFont();
+        textoReiniciar.setColor(Color.GREEN);
+        textoReiniciar.getData().setScale(2);
+
+		textoMelhorPontuacao = new BitmapFont();
+		textoMelhorPontuacao.setColor(Color.RED);
+		textoMelhorPontuacao.getData().setScale(2);
+
 
         //Formas geométricas para colisões
 		shapeRenderer = new ShapeRenderer();
