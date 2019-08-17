@@ -2,8 +2,10 @@ package com.cursoandroid.flappybird;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.Random;
@@ -29,6 +31,11 @@ public class jogo extends ApplicationAdapter {
 	private float posicaoVerticalCano;
 	private float espacoEntreCanos = 130;
 	private Random random;
+	private int pontos = 0;
+	private boolean passouCano = false;
+
+	//Exibicao de texto
+    BitmapFont textoPontuacao;
 	
 	@Override
 	public void create () {
@@ -40,6 +47,7 @@ public class jogo extends ApplicationAdapter {
 	@Override
 	public void render () {
 		desenharTexturas();
+		validarPontos();
 		verificarEstadoJogo();
 	}
 
@@ -48,11 +56,20 @@ public class jogo extends ApplicationAdapter {
 		batch.begin();
 
 		batch.draw(fundo,0,0,larguraDispositivo,alturaDispositivo);
-		batch.draw(passaros[(int)variacao],40,posicaoInicialVerticalPassaro);
+		batch.draw(passaros[(int)variacao],50,posicaoInicialVerticalPassaro);
 		batch.draw(canoBaixo,posicaoHorizontalCano,alturaDispositivo/2 - canoBaixo.getHeight() - espacoEntreCanos + posicaoVerticalCano);
 		batch.draw(canoTopo,posicaoHorizontalCano,alturaDispositivo/2 + espacoEntreCanos + posicaoVerticalCano);
-
+        textoPontuacao.draw(batch,String.valueOf(pontos),larguraDispositivo/2,alturaDispositivo-110);
 		batch.end();
+	}
+
+	private void validarPontos(){
+		if (posicaoHorizontalCano <40){
+			if (!passouCano){
+				pontos++;
+				passouCano = true;
+			}
+		}
 	}
 
 	private void verificarEstadoJogo (){
@@ -62,6 +79,7 @@ public class jogo extends ApplicationAdapter {
 		if (posicaoHorizontalCano < -canoBaixo.getWidth()){
 			posicaoHorizontalCano = larguraDispositivo;
 			posicaoVerticalCano = random.nextInt(800) -400;
+			passouCano=false;
 		}
 
 		//Evento de clique
@@ -100,6 +118,11 @@ public class jogo extends ApplicationAdapter {
 		alturaDispositivo = Gdx.graphics.getHeight();
 		posicaoInicialVerticalPassaro = alturaDispositivo/2;
 		posicaoHorizontalCano = larguraDispositivo;
+
+		//Configuracao dos textos
+        textoPontuacao = new BitmapFont();
+        textoPontuacao.setColor(Color.WHITE);
+        textoPontuacao.getData().setScale(10);
 	}
 	
 	@Override
